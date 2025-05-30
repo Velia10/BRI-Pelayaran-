@@ -24,9 +24,13 @@ if uploaded_file:
     df['date'] = pd.to_datetime(df['date'], format='%d/%m/%y', errors='coerce')
 
     for col in ['credit', 'debit', 'balance']:
-        df[col] = (df[col].astype(str).str.replace(r'[^\d,.-]', '', regex=True)
-                    .str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
-                    .astype(float).fillna(0))
+        df[col] = pd.to_numeric(
+            df[col].astype(str)
+                   .str.replace(r'[^\d,.-]', '', regex=True)
+                   .str.replace('.', '', regex=False)
+                   .str.replace(',', '.', regex=False),
+            errors='coerce'
+        ).fillna(0)
 
     def classify_cash_in(row):
         if row['credit'] == 0:
