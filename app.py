@@ -11,10 +11,15 @@ uploaded_file = st.file_uploader("Upload file main_data.xlsx", type="xlsx")
 
 if uploaded_file is not None:
     file_bytes = uploaded_file.read()
-    xls = BytesIO(file_bytes)
+    xls_io = BytesIO(file_bytes)
+    xls = pd.ExcelFile(xls_io)
 
-    df = pd.read_excel(xls, sheet_name='Transaksi Detail')
-    summary = pd.read_excel(xls, sheet_name='Ringkasan Akhir')
+    st.write("Sheets tersedia:", xls.sheet_names)
+    sheet_transaksi = st.selectbox("Pilih Sheet Transaksi Detail", xls.sheet_names)
+    sheet_ringkasan = st.selectbox("Pilih Sheet Ringkasan Akhir", xls.sheet_names)
+
+    df = pd.read_excel(xls, sheet_name=sheet_transaksi)
+    summary = pd.read_excel(xls, sheet_name=sheet_ringkasan)
 else:
     st.warning("Silakan upload file Excel.")
     st.stop()
