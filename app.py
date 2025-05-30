@@ -5,12 +5,16 @@ from datetime import timedelta
 
 st.set_page_config(layout="wide")
 
-# --- LOAD MAIN DATA ---
-MAIN_DATA_PATH = 'data/main_data.xlsx'
-df = pd.read_excel(MAIN_DATA_PATH, sheet_name='Transaksi Detail')
+# --- UPLOAD FILE ---
+uploaded_file = st.file_uploader("Upload file main_data.xlsx", type="xlsx")
+if uploaded_file:
+    df = pd.read_excel(uploaded_file, sheet_name='Transaksi Detail')
+else:
+    st.warning("Silakan upload file Excel.")
+    st.stop()
 
 # --- DISPLAY SUMMARY ---
-summary = pd.read_excel(MAIN_DATA_PATH, sheet_name='Ringkasan Akhir')
+summary = pd.read_excel(uploaded_file, sheet_name='Ringkasan Akhir')
 st.header("Ringkasan Cash Flow")
 st.dataframe(summary, use_container_width=True)
 
@@ -36,5 +40,4 @@ for i, val in enumerate(chart_data):
 st.pyplot(fig)
 
 # --- DOWNLOAD DATA ---
-with open(MAIN_DATA_PATH, "rb") as file:
-    st.download_button("Download Excel Rekap", data=file, file_name="rekap_cash_flow.xlsx")
+st.download_button("Download Excel Rekap", data=uploaded_file, file_name="rekap_cash_flow.xlsx")
