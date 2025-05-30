@@ -86,7 +86,7 @@ if uploaded_file:
     dfi = dfi[dfi['date'].dt.month == bulan_aktif]
     dfi['minggu_ke'] = dfi.groupby('start_of_week').ngroup() + 1
     dfi['label'] = dfi.apply(
-        lambda row: f"Minggu {row['minggu_ke']}\n{row['start_of_week'].strftime('%-d')}–{row['end_of_week'].strftime('%-d %B %Y')}",
+        lambda row: f"Minggu {row['minggu_ke']}\\n{row['start_of_week'].strftime('%-d')}–{row['end_of_week'].strftime('%-d %B %Y')}",
         axis=1
     )
 
