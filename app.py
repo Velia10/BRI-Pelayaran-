@@ -79,10 +79,11 @@ if uploaded_file:
     dfi = df[df['credit'] > 0].copy()
     dfi['start_of_week'] = dfi['date'] - dfi['date'].dt.weekday * pd.Timedelta(days=1)
     dfi['end_of_week'] = dfi['start_of_week'] + pd.Timedelta(days=6)
+    dfi['start_of_week'] = dfi['start_of_week'].fillna(pd.Timestamp('1970-01-01'))
+    dfi['end_of_week'] = dfi['end_of_week'].fillna(pd.Timestamp('1970-01-01'))
     dfi['minggu_ke'] = dfi.groupby(['start_of_week']).ngroup() + 1
     dfi['label'] = dfi.apply(
-        lambda row: f"Minggu {row['minggu_ke']}\n{row['start_of_week'].strftime('%-d')}–{row['end_of_week'].strftime('%-d %B %Y')}"
-        if pd.notnull(row['start_of_week']) and pd.notnull(row['end_of_week']) else "Tanggal tidak valid",
+        lambda row: f"Minggu {row['minggu_ke']}\n{row['start_of_week'].strftime('%-d')}–{row['end_of_week'].strftime('%-d %B %Y')}",
         axis=1
     )
     weekly_chart = dfi.groupby('label')['credit'].sum().sort_index() / 100000
