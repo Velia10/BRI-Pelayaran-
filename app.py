@@ -78,12 +78,12 @@ if uploaded_file:
 
     dfi = df[df['credit'] > 0].copy()
     dfi = dfi[dfi['date'].notna()]
-    dfi['start_of_week'] = dfi['date'] - pd.to_timedelta(dfi['date'].dt.weekday, unit='D')
-    dfi['end_of_week'] = dfi['start_of_week'] + pd.Timedelta(days=6)
-
     bulan_aktif = df['date'].dt.month.mode()[0]
-    dfi = dfi[dfi['start_of_week'].dt.month == bulan_aktif]
+    tahun_aktif = df['date'].dt.year.mode()[0]
 
+    dfi['start_of_week'] = dfi['date'] - pd.to_timedelta(dfi['date'].dt.weekday, unit='d')
+    dfi['end_of_week'] = dfi['start_of_week'] + pd.Timedelta(days=6)
+    dfi = dfi[dfi['date'].dt.month == bulan_aktif]
     dfi['minggu_ke'] = dfi.groupby('start_of_week').ngroup() + 1
     dfi['label'] = dfi.apply(
         lambda row: f"Minggu {row['minggu_ke']}\n{row['start_of_week'].strftime('%-d')}–{row['end_of_week'].strftime('%-d %B %Y')}",
@@ -104,7 +104,11 @@ if uploaded_file:
     st.pyplot(fig)
 
     opening_row = df_raw[df_raw.apply(lambda row: row.astype(str).str.contains("opening balance", case=False, na=False)).any(axis=1)]
-    opening_balance = opening_row[2].values[0] if not opening_row.empty else 0
+    if not opening_row.empty:
+        opening_numeric = pd.to_numeric(opening_row.iloc[0], errors='coerce')
+        opening_balance = opening_numeric[opening_numeric.notna()].iloc[-1]
+    else:
+        opening_balance = 0
 
     closing_row = df_raw[df_raw.apply(lambda row: row.astype(str).str.contains("closing balance", case=False, na=False)).any(axis=1)]
     if not closing_row.empty:
