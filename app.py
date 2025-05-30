@@ -2,19 +2,24 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import timedelta
+from io import BytesIO
 
 st.set_page_config(layout="wide")
 
 # --- UPLOAD FILE ---
 uploaded_file = st.file_uploader("Upload file main_data.xlsx", type="xlsx")
-if uploaded_file:
-    df = pd.read_excel(uploaded_file, sheet_name='Transaksi Detail')
+
+if uploaded_file is not None:
+    file_bytes = uploaded_file.read()
+    xls = BytesIO(file_bytes)
+
+    df = pd.read_excel(xls, sheet_name='Transaksi Detail')
+    summary = pd.read_excel(xls, sheet_name='Ringkasan Akhir')
 else:
     st.warning("Silakan upload file Excel.")
     st.stop()
 
 # --- DISPLAY SUMMARY ---
-summary = pd.read_excel(uploaded_file, sheet_name='Ringkasan Akhir')
 st.header("Ringkasan Cash Flow")
 st.dataframe(summary, use_container_width=True)
 
@@ -40,4 +45,4 @@ for i, val in enumerate(chart_data):
 st.pyplot(fig)
 
 # --- DOWNLOAD DATA ---
-st.download_button("Download Excel Rekap", data=uploaded_file, file_name="rekap_cash_flow.xlsx")
+st.download_button("Download Excel Rekap", data=file_bytes, file_name="rekap_cash_flow.xlsx")
