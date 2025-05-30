@@ -77,14 +77,13 @@ if uploaded_file:
     st.markdown(f"### Periode: {min_date} - {max_date}")
 
     dfi = df[df['credit'] > 0].copy()
-    dfi['start_of_week'] = dfi['date'] - dfi['date'].dt.weekday * pd.Timedelta(days=1)
+    dfi = dfi[dfi['date'].notna()]
+    dfi['start_of_week'] = dfi['date'] - pd.to_timedelta(dfi['date'].dt.weekday, unit='d')
     dfi['end_of_week'] = dfi['start_of_week'] + pd.Timedelta(days=6)
-    dfi['start_of_week'] = dfi['start_of_week'].fillna(pd.Timestamp('1970-01-01'))
-    dfi['end_of_week'] = dfi['end_of_week'].fillna(pd.Timestamp('1970-01-01'))
-    dfi['minggu_ke'] = dfi.groupby(['start_of_week']).ngroup() + 1
+    dfi['minggu_ke'] = dfi['start_of_week'].rank(method='dense').astype(int)
 
     dfi['label'] = dfi.apply(
-        lambda row: f"Minggu {row['minggu_ke']}\n{row['start_of_week'].strftime('%-d')}–{row['end_of_week'].strftime('%-d %B %Y')}",
+        lambda row: f"Minggu {row['minggu_ke']}\n{max(row['start_of_week'].day, 1)}–{row['end_of_week'].strftime('%-d %B %Y')}",
         axis=1
     )
 
@@ -103,8 +102,13 @@ if uploaded_file:
 
     opening_row = df_raw[df_raw.apply(lambda row: row.astype(str).str.contains("opening balance", case=False, na=False)).any(axis=1)]
     opening_balance = opening_row[2].values[0] if not opening_row.empty else 0
+
     closing_row = df_raw[df_raw.apply(lambda row: row.astype(str).str.contains("closing balance", case=False, na=False)).any(axis=1)]
-    closing_balance = closing_row[13].values[0] if not closing_row.empty else 0
+    if not closing_row.empty:
+        closing_numeric = pd.to_numeric(closing_row.iloc[0], errors='coerce')
+        closing_balance = closing_numeric[closing_numeric.notna()].iloc[-1]
+    else:
+        closing_balance = 0
 
     total_in = df['credit'].sum()
     total_out = df['debit'].sum()
