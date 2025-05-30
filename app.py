@@ -78,12 +78,15 @@ if uploaded_file:
 
     dfi = df[df['credit'] > 0].copy()
     dfi = dfi[dfi['date'].notna()]
-    dfi['start_of_week'] = dfi['date'] - pd.to_timedelta(dfi['date'].dt.weekday, unit='d')
+    dfi['start_of_week'] = dfi['date'] - pd.to_timedelta(dfi['date'].dt.weekday, unit='D')
     dfi['end_of_week'] = dfi['start_of_week'] + pd.Timedelta(days=6)
-    dfi['minggu_ke'] = dfi['start_of_week'].rank(method='dense').astype(int)
 
+    bulan_aktif = df['date'].dt.month.mode()[0]
+    dfi = dfi[dfi['start_of_week'].dt.month == bulan_aktif]
+
+    dfi['minggu_ke'] = dfi.groupby('start_of_week').ngroup() + 1
     dfi['label'] = dfi.apply(
-        lambda row: f"Minggu {row['minggu_ke']}\n{max(row['start_of_week'].day, 1)}–{row['end_of_week'].strftime('%-d %B %Y')}",
+        lambda row: f"Minggu {row['minggu_ke']}\n{row['start_of_week'].strftime('%-d')}–{row['end_of_week'].strftime('%-d %B %Y')}",
         axis=1
     )
 
