@@ -104,14 +104,14 @@ if uploaded_file:
     st.pyplot(fig)
 
     opening_row = df_raw[df_raw.apply(lambda row: row.astype(str).str.contains("opening balance", case=False, na=False)).any(axis=1)]
-    if not opening_row.empty:
+    if len(opening_row) > 0:
         opening_numeric = pd.to_numeric(opening_row.iloc[0], errors='coerce')
         opening_balance = opening_numeric[opening_numeric.notna()].iloc[-1]
     else:
         opening_balance = 0
 
     closing_row = df_raw[df_raw.apply(lambda row: row.astype(str).str.contains("closing balance", case=False, na=False)).any(axis=1)]
-    if not closing_row.empty:
+    if len(closing_row) > 0:
         closing_numeric = pd.to_numeric(closing_row.iloc[0], errors='coerce')
         closing_balance = closing_numeric[closing_numeric.notna()].iloc[-1]
     else:
