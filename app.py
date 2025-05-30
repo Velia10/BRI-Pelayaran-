@@ -19,13 +19,13 @@ if uploaded_file:
     df.columns = df.columns.str.lower().str.strip()
     df.rename(columns={'debet': 'debit', 'ledger': 'balance'}, inplace=True)
 
-    df['remark'] = df['remark'].astype(str).str.lower()
+    df['remark'] = df['remark'].apply(str).str.lower()
     df['time'] = pd.to_datetime(df['time'], format='%H:%M:%S', errors='coerce').dt.time
     df['date'] = pd.to_datetime(df['date'], format='%d/%m/%y', errors='coerce')
 
     for col in ['credit', 'debit', 'balance']:
         df[col] = pd.to_numeric(
-            df[col].astype(str)
+            df[col].apply(str)
                    .str.replace(r'[^\d,.-]', '', regex=True)
                    .str.replace('.', '', regex=False)
                    .str.replace(',', '.', regex=False),
@@ -60,7 +60,7 @@ if uploaded_file:
             return "Pinbuk SAP"
         if "prop" in rmk or any(k in rmk for k in ["gaji karyawan", "gaji", "gaji direksi"]):
             return "Pinbuk Fidias"
-        if any(k in rmk for k in ["paypro",]):
+        if any(k in rmk for k in ["paypro"]):
             return "Pinbuk SAP"
         if any(k in rmk for k in ["pinbuk ke", "pinbuk cicilan"]):
             return "Pinbuk Bank Lainnya"
@@ -80,7 +80,7 @@ if uploaded_file:
     dfi['start_of_week'] = dfi['date'] - dfi['date'].dt.weekday * pd.Timedelta(days=1)
     dfi['end_of_week'] = dfi['start_of_week'] + pd.Timedelta(days=6)
     dfi['minggu_ke'] = dfi.groupby(['start_of_week']).ngroup() + 1
-    dfi['label'] = dfi.apply(lambda row: f"Minggu {row['minggu_ke']}\n{row['start_of_week'].day}–{row['end_of_week'].day} {row['start_of_week'].strftime('%B')} {row['start_of_week'].year}", axis=1)
+    dfi['label'] = dfi.apply(lambda row: f"Minggu {row['minggu_ke']}\\n{row['start_of_week'].day}–{row['end_of_week'].day} {row['start_of_week'].strftime('%B')} {row['start_of_week'].year}", axis=1)
     weekly_chart = dfi.groupby('label')['credit'].sum().sort_index() / 100000
 
     st.subheader("Grafik Cash In per Minggu")
